@@ -1,0 +1,277 @@
+import { useLocation, useNavigate } from "react-router-dom";
+import { useContext, useEffect, useState } from "react";
+import { UserContext } from "../../auth/context/UserContext";
+import axios from "axios";
+
+export const BoardPage = () => {
+   const {
+      user: { id },
+   } = useContext(UserContext);
+   const { state: boardId } = useLocation();
+   const navigate = useNavigate();
+
+   const [board, setBoard] = useState<string[]>([" ", " ", " ", " ", " ", " ", " ", " ", " "]);
+   const [playerX, setPlayerX] = useState("");
+   const [playerO, setPlayerO] = useState("");
+   const [turn, setTurn] = useState<string>("x");
+   const [winner, setWinner] = useState<string>("pending");
+
+   // Obtiene el nombre de los jugadores y su turno.
+   useEffect(() => {
+      const setPlayers = async () => {
+         const boardResponse = await axios.get(`http://localhost:3000/boards/${boardId}/refresh`);
+         const player_x_id = boardResponse.data.board.playerx_id;
+         const player_o_id = boardResponse.data.board.playero_id;
+
+         const player_x_response = await axios.get(`http://localhost:3000/players/${player_x_id}`);
+         const player_o_response = await axios.get(`http://localhost:3000/players/${player_o_id}`);
+
+         setPlayerX(player_x_response.data.player.name);
+         setPlayerO(player_o_response.data.player.name);
+      };
+      try {
+         setPlayers();
+      } catch (e: any) {
+         console.log(e.response.data.message);
+      }
+   });
+
+   // Refresca el board cada cierto tiempo.
+   useEffect(() => {
+      let interval = setInterval(() => {
+         const refresh = async () => {
+            const response = await axios.get(`http://localhost:3000/boards/${boardId}/refresh`);
+            let board = response.data.board;
+            setBoard(board.state.split(","));
+            setTurn(board.turn);
+            setWinner(board.winner);
+         };
+         try {
+            refresh();
+         } catch (e: any) {
+            console.log(e.response.data.message);
+            clearInterval(interval);
+         }
+      }, 500);
+      if (winner !== "pending") clearInterval(interval);
+
+      return () => {
+         clearInterval(interval);
+      };
+   });
+
+   const handleClick = async (index: number, id: number) => {
+      try {
+         await axios.post(
+            `http://localhost:3000/boards/${boardId}/play`,
+            JSON.stringify({ player_id: id, index: index }),
+            { headers: { "Content-type": "application/json; charset=UTF-8" } }
+         );
+      } catch (e: any) {
+         console.log(e.response.data.message);
+      }
+   };
+
+   return (
+      <div className="container">
+         <div className="board">
+            <div className="board-row">
+               <button className="cell" onClick={() => handleClick(0, id)}>
+                  {board[0]}
+               </button>
+               <button className="cell" onClick={() => handleClick(1, id)}>
+                  {board[1]}
+               </button>
+               <button className="cell" onClick={() => handleClick(2, id)}>
+                  {board[2]}
+               </button>
+            </div>
+            <div className="board-row">
+               <button className="cell" onClick={() => handleClick(3, id)}>
+                  {board[3]}
+               </button>
+               <button className="cell" onClick={() => handleClick(4, id)}>
+                  {board[4]}
+               </button>
+               <button className="cell" onClick={() => handleClick(5, id)}>
+                  {board[5]}
+               </button>
+            </div>
+            <div className="board-row">
+               <button className="cell" onClick={() => handleClick(6, id)}>
+                  {board[6]}
+               </button>
+               <button className="cell" onClick={() => handleClick(7, id)}>
+                  {board[7]}
+               </button>
+               <button className="cell" onClick={() => handleClick(8, id)}>
+                  {board[8]}
+               </button>
+            </div>
+         </div>
+         <div className="player_x">
+            <h4>X: {playerX}</h4>
+         </div>
+         <div className="player_o">
+            <h4>O: {playerO}</h4>
+         </div>
+         <div className="turn">
+            <h3>Turn: {turn}</h3>
+         </div>
+         <div className="winner" style={{ display: winner === "pending" ? "none" : "" }}>
+            <h3>Winner: {winner.toUpperCase()} </h3>
+         </div>
+         {winner === "pending" && (
+            <div className="accept_button_container">
+               <button className="accept_button" onClick={() => navigate("/")}>
+                  Accept
+               </button>
+            </div>
+         )}
+      </div>
+   );
+};
+
+
+
+////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+
+
+
+
+import { useLocation, useNavigate } from "react-router-dom";
+import { useContext, useEffect, useState } from "react";
+import { UserContext } from "../../auth/context/UserContext";
+import axios from "axios";
+
+export const BoardPage = () => {
+   const {
+      user: { id },
+   } = useContext(UserContext);
+   const { state: boardId } = useLocation();
+   const navigate = useNavigate();
+
+   const [board, setBoard] = useState<string[]>([" ", " ", " ", " ", " ", " ", " ", " ", " "]);
+   const [playerX, setPlayerX] = useState("");
+   const [playerO, setPlayerO] = useState("");
+   const [turn, setTurn] = useState<string>("x");
+   const [winner, setWinner] = useState<string>("pending");
+
+   // Obtiene el nombre de los jugadores y su turno.
+   useEffect(() => {
+      const setPlayers = async () => {
+         const boardResponse = await axios.get(`http://localhost:3000/boards/${boardId}/refresh`);
+         const player_x_id = boardResponse.data.board.playerx_id;
+         const player_o_id = boardResponse.data.board.playero_id;
+
+         const player_x_response = await axios.get(`http://localhost:3000/players/${player_x_id}`);
+         const player_o_response = await axios.get(`http://localhost:3000/players/${player_o_id}`);
+
+         setPlayerX(player_x_response.data.player.name);
+         setPlayerO(player_o_response.data.player.name);
+      };
+      try {
+         setPlayers();
+      } catch (e: any) {
+         console.log(e.response.data.message);
+      }
+   });
+
+   // Refresca el board cada cierto tiempo.
+   useEffect(() => {
+      let interval = setInterval(() => {
+         const refresh = async () => {
+            const response = await axios.get(`http://localhost:3000/boards/${boardId}/refresh`);
+            let board = response.data.board;
+            setBoard(board.state.split(","));
+            setTurn(board.turn);
+            setWinner(board.winner);
+         };
+         try {
+            refresh();
+         } catch (e: any) {
+            console.log(e.response.data.message);
+            clearInterval(interval);
+         }
+      }, 500);
+      if (winner !== "pending") clearInterval(interval);
+
+      return () => {
+         clearInterval(interval);
+      };
+   });
+
+   const handleClick = async (index: number, id: number) => {
+      try {
+         await axios.post(
+            `http://localhost:3000/boards/${boardId}/play`,
+            JSON.stringify({ player_id: id, index: index }),
+            { headers: { "Content-type": "application/json; charset=UTF-8" } }
+         );
+      } catch (e: any) {
+         console.log(e.response.data.message);
+      }
+   };
+
+   return (
+      <div className="row">
+         <div className="col-md-4 mt-5 text-center">
+            <h4>X: {playerX}</h4>
+         </div>
+         <div className="col-md-4 mt-5 text-center">
+            <div className="mx-auto">
+               <div className="board-row">
+                  <button className="cell" onClick={() => handleClick(0, id)}>
+                     {board[0]}
+                  </button>
+                  <button className="cell" onClick={() => handleClick(1, id)}>
+                     {board[1]}
+                  </button>
+                  <button className="cell" onClick={() => handleClick(2, id)}>
+                     {board[2]}
+                  </button>
+               </div>
+               <div className="board-row">
+                  <button className="cell" onClick={() => handleClick(3, id)}>
+                     {board[3]}
+                  </button>
+                  <button className="cell" onClick={() => handleClick(4, id)}>
+                     {board[4]}
+                  </button>
+                  <button className="cell" onClick={() => handleClick(5, id)}>
+                     {board[5]}
+                  </button>
+               </div>
+               <div className="board-row">
+                  <button className="cell" onClick={() => handleClick(6, id)}>
+                     {board[6]}
+                  </button>
+                  <button className="cell" onClick={() => handleClick(7, id)}>
+                     {board[7]}
+                  </button>
+                  <button className="cell" onClick={() => handleClick(8, id)}>
+                     {board[8]}
+                  </button>
+               </div>
+            </div>
+            <div className="turn">
+               <h3>Turn: {turn}</h3>
+            </div>
+            <div className="winner" style={{ display: winner === "pending" ? "none" : "" }}>
+               <h3>Winner: {winner.toUpperCase()} </h3>
+            </div>
+            {winner !== "pending" && (
+               <div>
+                  <button className="accept_button mt-3" onClick={() => navigate("/")}>
+                     Accept
+                  </button>
+               </div>
+            )}
+         </div>
+         <div className="col-md-4 mt-5 text-center">
+            <h4>O: {playerO}</h4>
+         </div>
+      </div>
+   );
+};
